@@ -1,0 +1,76 @@
+/* =========================
+   VARIABLES DE COLOR
+========================= */
+:root {
+    --primary: #c1121f;
+    --primary-dark: #780000;
+    --bg-light: #f8f9fa;
+    --text-dark: #212529;
+}
+
+/* =========================
+   GENERAL
+========================= */
+body {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    font-family: Arial, sans-serif;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+.navbar {
+    background-color: var(--primary-dark) !important;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* =========================
+   BOTONES
+========================= */
+.btn-primary {
+    background-color: var(--primary);
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+/* =========================
+   CARDS PRODUCTOS
+========================= */
+.card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.card img {
+    border-radius: 12px 12px 0 0;
+    object-fit: cover;
+    height: 200px;
+}
+
+/* =========================
+   TITULOS
+========================= */
+h2 {
+    font-weight: bold;
+}
+
+/* =========================
+   CONTENEDORES
+========================= */
+.container {
+    max-width: 1200px;
+}
