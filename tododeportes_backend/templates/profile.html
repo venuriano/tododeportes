@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Perfil | TodoDeportes{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2>Mi perfil</h2>
+
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+
+        <!-- Nombre -->
+        <div class="mb-3">
+            <label>Nombre</label>
+            <input 
+                type="text" 
+                class="form-control {% if error_nombre %}is-invalid{% endif %}" 
+                name="nombre"
+                value="{{ request.user.first_name }}"
+            >
+            {% if error_nombre %}
+                <div class="invalid-feedback">{{ error_nombre }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Email (readonly) -->
+        <div class="mb-3">
+            <label>Email</label>
+            <input 
+                type="email" 
+                class="form-control" 
+                value="{{ request.user.username }}" 
+                readonly
+            >
+        </div>
+
+        <!-- Nueva contraseña -->
+        <div class="mb-3">
+            <label>Nueva contraseña</label>
+            <input 
+                type="password" 
+                class="form-control {% if error_password %}is-invalid{% endif %}" 
+                name="password"
+            >
+            {% if error_password %}
+                <div class="invalid-feedback">{{ error_password }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Confirmar contraseña -->
+        <div class="mb-3">
+            <label>Confirmar contraseña</label>
+            <input 
+                type="password" 
+                class="form-control {% if error_confirm %}is-invalid{% endif %}" 
+                name="confirm_password"
+            >
+            {% if error_confirm %}
+                <div class="invalid-feedback">{{ error_confirm }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Guardar cambios
+        </button>
+
+    </form>
+
+    {% if success %}
+        <div class="alert alert-success mt-3">
+            Perfil actualizado correctamente
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

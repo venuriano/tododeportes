@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout | TodoDeportes{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Resumen de compra</h2>
+
+    <ul class="list-group mt-3" id="checkout-list"></ul>
+
+    <h4 class="mt-3" id="checkout-total"></h4>
+
+    <button class="btn btn-success mt-3" onclick="finalizarCompra()">
+        Confirmar compra
+    </button>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/app.js"></script>
+{% endblock %}

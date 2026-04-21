@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2>Compra realizada con éxito</h2>
+
+    <p>Orden ID: {{ orden.id }}</p>
+    <p>Total: ${{ orden.total }}</p>
+
+    <a href="/" class="btn btn-primary mt-3">
+        Volver al inicio
+    </a>
+</div>
+
+{% endblock %}

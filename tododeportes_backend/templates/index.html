@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio | TodoDeportes{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="p-5 text-white rounded" style="background: linear-gradient(90deg, #c1121f, #780000);">
+        <h1>TodoDeportes</h1>
+        <p>Todo lo que necesitas para tu entrenamiento en un solo lugar</p>
+    </div>
+</div>
+<div class="container mt-5">
+
+    <h2 class="mb-4">Productos de Gimnasio</h2>
+
+    <div class="container mt-5">
+
+    <h2 class="mb-4">Productos</h2>
+
+    <div class="row">
+
+        {% for producto in productos %}
+        <div class="col-md-4 mb-4">
+            <div class="card p-3">
+                <h5>{{ producto.nombre }}</h5>
+                <p>{{ producto.descripcion }}</p>
+                <p><strong>${{ producto.precio }}</strong></p>
+
+                <a href="{% url 'agregar_al_carrito' producto.id %}" class="btn btn-primary mt-2">
+                    Agregar al carrito
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/app.js"></script>
+{% endblock %}
