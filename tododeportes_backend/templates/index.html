@@ -10,31 +10,68 @@
         <p>Todo lo que necesitas para tu entrenamiento en un solo lugar</p>
     </div>
 </div>
+
+<div class="container mt-4">
+    <div class="row">
+
+        <div class="col-md-6 mb-3">
+            <div class="card p-3">
+                <h5>Clima actual en Santiago</h5>
+                {% if clima %}
+                    <p><strong>Temperatura:</strong> {{ clima.temperature }}°C</p>
+                    <p><strong>Viento:</strong> {{ clima.windspeed }} km/h</p>
+                {% else %}
+                    <p class="text-muted">Información no disponible</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card p-3">
+                <h5>Tipo de cambio</h5>
+                {% if monedas %}
+                    <p><strong>USD a CLP:</strong> {{ monedas.usd_clp }}</p>
+                    <p><strong>USD a EUR:</strong> {{ monedas.usd_eur }}</p>
+                {% else %}
+                    <p class="text-muted">Información no disponible</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <div class="container mt-5">
-
-    <h2 class="mb-4">Productos de Gimnasio</h2>
-
-    <div class="container mt-5">
-
     <h2 class="mb-4">Productos</h2>
 
     <div class="row">
 
         {% for producto in productos %}
         <div class="col-md-4 mb-4">
-            <div class="card p-3">
+            <div class="card p-3 h-100">
                 <h5>{{ producto.nombre }}</h5>
                 <p>{{ producto.descripcion }}</p>
                 <p><strong>${{ producto.precio }}</strong></p>
 
-                <a href="{% url 'agregar_al_carrito' producto.id %}" class="btn btn-primary mt-2">
-                    Agregar al carrito
-                </a>
+                <form method="POST" action="{% url 'agregar_al_carrito' producto.id %}">
+                    {% csrf_token %}
+
+                    <input 
+                        type="number" 
+                        name="cantidad" 
+                        value="1" 
+                        min="1" 
+                        class="form-control mb-2"
+                    >
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Agregar al carrito
+                    </button>
+                </form>
+
             </div>
         </div>
         {% endfor %}
-
-    </div>
 
     </div>
 </div>

@@ -14,6 +14,7 @@
                 <th>Precio</th>
                 <th>Cantidad</th>
                 <th>Total</th>
+                <th></th>
             </tr>
         </thead>
 
@@ -24,6 +25,14 @@
                 <td>${{ item.producto.precio }}</td>
                 <td>{{ item.cantidad }}</td>
                 <td>${{ item.total }}</td>
+                <td>
+                    <form method="POST" action="{% url 'eliminar_item' item.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger btn-sm">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

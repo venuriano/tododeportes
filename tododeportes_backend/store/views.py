@@ -2,18 +2,79 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout, update_session_auth_hash
-
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from django.core.cache import cache
+from .serializers import ProductoSerializer, OrdenSerializer
 from .models import Producto, Carrito, ItemCarrito, Orden, ItemOrden, Categoria
+import re
+import requests
 
 
 def es_admin(user):
     return user.is_staff
 
 
+def obtener_clima():
+    cache_key = "clima_santiago"
+
+    data = cache.get(cache_key)
+    if data:
+        return data
+
+    try:
+        url = "https://api.open-meteo.com/v1/forecast?latitude=-33.45&longitude=-70.66&current_weather=true"
+        response = requests.get(url, timeout=3)
+        response.raise_for_status()
+
+        json_data = response.json()
+        clima = json_data.get('current_weather', {})
+
+        cache.set(cache_key, clima, timeout=300)  # 5 minutos
+        return clima
+
+    except Exception:
+        return None
+
+
+def obtener_monedas():
+    cache_key = "monedas_usd"
+
+    data = cache.get(cache_key)
+    if data:
+        return data
+
+    try:
+        url = "https://api.exchangerate-api.com/v4/latest/USD"
+        response = requests.get(url, timeout=3)
+        response.raise_for_status()
+
+        json_data = response.json()
+        tasas = json_data.get('rates', {})
+
+        resultado = {
+            'usd_clp': tasas.get('CLP'),
+            'usd_eur': tasas.get('EUR')
+        }
+
+        cache.set(cache_key, resultado, timeout=600)  # 10 minutos
+        return resultado
+
+    except Exception:
+        return None
+
+
 def home(request):
     productos = Producto.objects.all()
-    return render(request, 'index.html', {'productos': productos})
 
+    clima = obtener_clima()
+    monedas = obtener_monedas()
+
+    return render(request, 'index.html', {
+        'productos': productos,
+        'clima': clima,
+        'monedas': monedas
+    })
 
 
 @login_required
@@ -36,7 +97,9 @@ def ver_carrito(request):
 def agregar_al_carrito(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
 
-    carrito, created = Carrito.objects.get_or_create(usuario=request.user)
+    cantidad = int(request.POST.get('cantidad', 1))
+
+    carrito, _ = Carrito.objects.get_or_create(usuario=request.user)
 
     item, created = ItemCarrito.objects.get_or_create(
         carrito=carrito,
@@ -44,11 +107,22 @@ def agregar_al_carrito(request, producto_id):
     )
 
     if not created:
-        item.cantidad += 1
-        item.save()
+        item.cantidad += cantidad
+    else:
+        item.cantidad = cantidad
+
+    item.save()
+
+    return redirect('home')
+
+@login_required
+def eliminar_item_carrito(request, item_id):
+    item = get_object_or_404(ItemCarrito, id=item_id)
+
+    if item.carrito.usuario == request.user:
+        item.delete()
 
     return redirect('cart')
-
 
 
 @login_required
@@ -64,7 +138,6 @@ def checkout(request):
         return redirect('cart')
 
     total = 0
-
     orden = Orden.objects.create(usuario=request.user, total=0)
 
     for item in items:
@@ -86,9 +159,6 @@ def checkout(request):
     return render(request, 'checkout_success.html', {'orden': orden})
 
 
-import re
-from django.contrib import messages
-
 def register(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -109,20 +179,15 @@ def register(request):
         elif password != confirm:
             errors['confirm'] = "Las contraseñas no coinciden"
 
-
         if password:
             if len(password) < 8:
                 errors['password'] = "Debe tener mínimo 8 caracteres"
-
             elif len(password) > 20:
                 errors['password'] = "Debe tener máximo 20 caracteres"
-
             elif not re.search(r'[A-Za-z]', password):
                 errors['password'] = "Debe contener letras"
-
             elif not re.search(r'[0-9]', password):
                 errors['password'] = "Debe contener números"
-
             elif not re.search(r'[!@#$%^&*(),.?\":{}|<>]', password):
                 errors['password'] = "Debe contener un carácter especial"
 
@@ -148,43 +213,41 @@ def logout_view(request):
     return redirect('home')
 
 
-
 @login_required
 def profile(request):
     context = {}
 
     if request.method == 'POST':
-        nombre = request.POST.get('nombre')
-        password = request.POST.get('password')
-        confirm = request.POST.get('confirm_password')
+        tipo = request.POST.get('tipo')
 
-        error = False
+        user = request.user
 
-        if not nombre:
-            context['error_nombre'] = "El nombre no puede estar vacío"
-            error = True
+        # ACTUALIZAR NOMBRE
+        if tipo == 'datos':
+            nombre = request.POST.get('nombre')
 
-        if password:
+            if not nombre:
+                context['error_nombre'] = "El nombre no puede estar vacío"
+            else:
+                user.first_name = nombre
+                user.save()
+                context['success_datos'] = True
+
+        # CAMBIAR PASSWORD
+        elif tipo == 'password':
+            password = request.POST.get('password')
+            confirm = request.POST.get('confirm_password')
+
             if len(password) < 8:
                 context['error_password'] = "Debe tener al menos 8 caracteres"
-                error = True
             elif password != confirm:
-                context['error_confirm'] = "Las contraseñas no coinciden"
-                error = True
-
-        if not error:
-            user = request.user
-            user.first_name = nombre
-
-            if password:
+                context['error_confirm'] = "No coinciden"
+            else:
                 user.set_password(password)
                 update_session_auth_hash(request, user)
-
-            user.save()
-            context['success'] = True
+                context['success_password'] = True
 
     return render(request, 'profile.html', context)
-
 
 @login_required
 def admin_productos(request):
@@ -218,6 +281,7 @@ def admin_productos(request):
         'categorias': categorias
     })
 
+
 @login_required
 @user_passes_test(es_admin)
 def editar_producto(request, id):
@@ -242,6 +306,7 @@ def editar_producto(request, id):
         'categorias': categorias
     })
 
+
 @login_required
 @user_passes_test(es_admin)
 def eliminar_producto(request, id):
@@ -252,3 +317,41 @@ def eliminar_producto(request, id):
         return redirect('admin_productos')
 
     return redirect('admin_productos')
+
+
+# API REST
+
+class ProductoListAPIView(generics.ListAPIView):
+    queryset = Producto.objects.all().order_by('id')
+    serializer_class = ProductoSerializer
+
+
+class ProductoDetailAPIView(generics.RetrieveAPIView):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+
+
+class MisOrdenesAPIView(generics.ListAPIView):
+    serializer_class = OrdenSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Orden.objects.filter(
+            usuario=self.request.user
+        ).order_by('-id')
+
+def clima_view(request):
+    clima = obtener_clima()
+
+    return render(request, 'clima.html', {
+        'clima': clima
+    })
+
+
+def moneda_view(request):
+    monedas = obtener_monedas()
+
+    return render(request, 'moneda.html', {
+        'usd_clp': monedas.get('usd_clp') if monedas else None,
+        'usd_eur': monedas.get('usd_eur') if monedas else None,
+    })

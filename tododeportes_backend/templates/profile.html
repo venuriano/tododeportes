@@ -7,71 +7,43 @@
 <div class="container mt-5">
     <h2>Mi perfil</h2>
 
+    <!-- DATOS -->
     <form method="POST" class="mt-4">
         {% csrf_token %}
+        <input type="hidden" name="tipo" value="datos">
 
-        <!-- Nombre -->
-        <div class="mb-3">
-            <label>Nombre</label>
-            <input 
-                type="text" 
-                class="form-control {% if error_nombre %}is-invalid{% endif %}" 
-                name="nombre"
-                value="{{ request.user.first_name }}"
-            >
-            {% if error_nombre %}
-                <div class="invalid-feedback">{{ error_nombre }}</div>
-            {% endif %}
-        </div>
+        <h5>Datos personales</h5>
 
-        <!-- Email (readonly) -->
-        <div class="mb-3">
-            <label>Email</label>
-            <input 
-                type="email" 
-                class="form-control" 
-                value="{{ request.user.username }}" 
-                readonly
-            >
-        </div>
+        <input type="text" name="nombre" class="form-control mb-2"
+               value="{{ request.user.first_name }}">
 
-        <!-- Nueva contraseña -->
-        <div class="mb-3">
-            <label>Nueva contraseña</label>
-            <input 
-                type="password" 
-                class="form-control {% if error_password %}is-invalid{% endif %}" 
-                name="password"
-            >
-            {% if error_password %}
-                <div class="invalid-feedback">{{ error_password }}</div>
-            {% endif %}
-        </div>
+        <input type="email" class="form-control mb-2"
+               value="{{ request.user.username }}" readonly>
 
-        <!-- Confirmar contraseña -->
-        <div class="mb-3">
-            <label>Confirmar contraseña</label>
-            <input 
-                type="password" 
-                class="form-control {% if error_confirm %}is-invalid{% endif %}" 
-                name="confirm_password"
-            >
-            {% if error_confirm %}
-                <div class="invalid-feedback">{{ error_confirm }}</div>
-            {% endif %}
-        </div>
+        <button class="btn btn-primary">Guardar datos</button>
 
-        <button type="submit" class="btn btn-primary">
-            Guardar cambios
-        </button>
-
+        {% if success_datos %}
+            <div class="alert alert-success mt-2">Datos actualizados</div>
+        {% endif %}
     </form>
 
-    {% if success %}
-        <div class="alert alert-success mt-3">
-            Perfil actualizado correctamente
-        </div>
-    {% endif %}
+    <!-- PASSWORD -->
+    <form method="POST" class="mt-5">
+        {% csrf_token %}
+        <input type="hidden" name="tipo" value="password">
+
+        <h5>Cambiar contraseña</h5>
+
+        <input type="password" name="password" class="form-control mb-2" placeholder="Nueva contraseña">
+        <input type="password" name="confirm_password" class="form-control mb-2" placeholder="Confirmar">
+
+        <button class="btn btn-warning">Cambiar contraseña</button>
+
+        {% if success_password %}
+            <div class="alert alert-success mt-2">Contraseña actualizada</div>
+        {% endif %}
+    </form>
+
 </div>
 
 {% endblock %}

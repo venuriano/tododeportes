@@ -18,6 +18,38 @@
 
 {% include 'partials/navbar.html' %}
 
+<!-- ======================
+     MINI CARRITO
+====================== -->
+<div style="position: fixed; top: 90px; right: 20px; width: 260px; z-index: 1000;">
+    <div class="card shadow">
+        <div class="card-body">
+
+            <h6 class="mb-2">Carrito ({{ cart_count }})</h6>
+
+            {% if cart_items %}
+                <ul class="list-unstyled mb-2" style="max-height: 150px; overflow-y: auto; font-size: 0.9rem;">
+                    {% for item in cart_items %}
+                        <li>
+                            {{ item.producto.nombre }} x{{ item.cantidad }}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <p class="mb-2"><strong>Total:</strong> ${{ cart_total }}</p>
+
+                <a href="{% url 'cart' %}" class="btn btn-primary btn-sm w-100">
+                    Ver carrito / finalizar
+                </a>
+
+            {% else %}
+                <p class="text-muted mb-0">Carrito vacío</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
 <main>
     {% block content %}
     {% endblock %}
